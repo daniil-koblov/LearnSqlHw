@@ -1,1 +1,89 @@
+1 Задание.
 
+mysql> CREATE DATABASE learn_sql_hw_2;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| learn_sql_hw_2     |
+| mysql              |
+| performance_schema |
+| sakila             |
+| sys                |
+| world              |
++--------------------+
+7 rows in set (0.00 sec)
+mysql> USE learn_sql_hw_2;
+Database changed
+mysql> CREATE TABLE sales
+    -> (id INT PRIMARY KEY AUTO_INCREMENT,
+    -> order_date DATE,
+    -> count_product INT
+    -> );
+Query OK, 0 rows affected (0.09 sec)
+mysql> INSERT INTO sales (order_date, count_product)
+    -> VALUES
+    -> ('2022-01-01', '156'),
+    -> ('2022-01-02', '180'),
+    -> ('2022-01-03', '21'),
+    -> ('2022-01-04', '124'),
+    -> ('2022-01-05', '341');
+Query OK, 5 rows affected (0.01 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM sales;
++----+------------+---------------+
+| id | order_date | count_product |
++----+------------+---------------+
+|  1 | 2022-01-01 |           156 |
+|  2 | 2022-01-02 |           180 |
+|  3 | 2022-01-03 |            21 |
+|  4 | 2022-01-04 |           124 |
+|  5 | 2022-01-05 |           341 |
++----+------------+---------------+
+5 rows in set (0.00 sec)
+
+2 Задание
+
+mysql> SELECT id,
+    -> CASE
+    ->     WHEN count_product < 100
+    ->         THEN 'Маленький заказ'
+    ->     WHEN count_product > 100 AND count_product < 300
+    ->         THEN 'Средний заказ'
+    ->     ELSE 'Большой заказ'
+    -> END AS order_type
+    -> FROM sales;
++----+-------------------------------+
+| id | order_type                    |
++----+-------------------------------+
+|  1 | Средний заказ                 |
+|  2 | Средний заказ                 |
+|  3 | Маленький заказ               |
+|  4 | Средний заказ                 |
+|  5 | Большой заказ                 |
++----+-------------------------------+
+5 rows in set (0.01 sec)
+
+3 Задание
+
+mysql> CREATE TABLE orders
+    -> (id INT PRIMARY KEY AUTO_INCREMENT,
+    -> employee_id INT,
+    -> amount DECIMAL(8,2),
+    -> order_status VARCHAR (10),
+    -> FOREIGN KEY (employee_id) REFERENCES sales (id)
+    -> );
+Query OK, 0 rows affected (0.07 sec)
+mysql> INSERT INTO orders (amount, order_status)
+    -> VALUES
+    -> ('15.00', 'OPEN'),
+    -> ('25.50', 'OPEN'),
+    -> ('100.70', 'CLOSED'),
+    -> ('22.18', 'OPEN'),
+    -> ('9.50', 'CANCELLED');
+Query OK, 5 rows affected (0.02 sec)
+Records: 5  Duplicates: 0  Warnings: 0
