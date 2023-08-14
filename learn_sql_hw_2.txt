@@ -48,42 +48,83 @@ mysql> SELECT * FROM sales;
 
 2 Задание
 
-mysql> SELECT id,
-    -> CASE
-    ->     WHEN count_product < 100
-    ->         THEN 'Маленький заказ'
-    ->     WHEN count_product > 100 AND count_product < 300
-    ->         THEN 'Средний заказ'
-    ->     ELSE 'Большой заказ'
-    -> END AS order_type
-    -> FROM sales;
-+----+-------------------------------+
-| id | order_type                    |
-+----+-------------------------------+
-|  1 | Средний заказ                 |
-|  2 | Средний заказ                 |
-|  3 | Маленький заказ               |
-|  4 | Средний заказ                 |
-|  5 | Большой заказ                 |
-+----+-------------------------------+
-5 rows in set (0.01 sec)
+mysql> SELECT
+    ->     id AS 'id заказа',
+    ->     CASE
+    ->         WHEN count_product < 100
+    ->             THEN 'Маленький заказ'
+    ->         WHEN count_product > 100 AND count_product < 300
+    ->             THEN 'Средний заказ'
+    ->         ELSE 'Большой заказ'
+    ->     END AS 'Тип заказа'
+    -> FROM SALES;
++-----------------+-------------------------------+
+| id заказа       | Тип заказа                    |
++-----------------+-------------------------------+
+|               1 | Средний заказ                 |
+|               2 | Средний заказ                 |
+|               3 | Маленький заказ               |
+|               4 | Средний заказ                 |
+|               5 | Большой заказ                 |
++-----------------+-------------------------------+
+5 rows in set (0.00 sec)
 
 3 Задание
 
 mysql> CREATE TABLE orders
     -> (id INT PRIMARY KEY AUTO_INCREMENT,
-    -> employee_id INT,
+    -> employee_id VARCHAR(5),
     -> amount DECIMAL(8,2),
-    -> order_status VARCHAR (10),
-    -> FOREIGN KEY (employee_id) REFERENCES sales (id)
+    -> order_status VARCHAR (10)
     -> );
-Query OK, 0 rows affected (0.07 sec)
-mysql> INSERT INTO orders (amount, order_status)
-    -> VALUES
-    -> ('15.00', 'OPEN'),
-    -> ('25.50', 'OPEN'),
-    -> ('100.70', 'CLOSED'),
-    -> ('22.18', 'OPEN'),
-    -> ('9.50', 'CANCELLED');
-Query OK, 5 rows affected (0.02 sec)
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO orders (employee_id, amount, order_status)
+    ->     VALUES
+    ->     ('e03', '15.00', 'OPEN'),
+    ->     ('e01', '25.50', 'OPEN'),
+    ->     ('e05', '100.70', 'CLOSED'),
+    ->     ('e02', '22.18', 'OPEN'),
+    ->     ('e04', '9.50', 'CANCELLED');
+Query OK, 5 rows affected (0.01 sec)
 Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM orders;
++----+-------------+--------+--------------+
+| id | employee_id | amount | order_status |
++----+-------------+--------+--------------+
+| 11 | e03         |  15.00 | OPEN         |
+| 12 | e01         |  25.50 | OPEN         |
+| 13 | e05         | 100.70 | CLOSED       |
+| 14 | e02         |  22.18 | OPEN         |
+| 15 | e04         |   9.50 | CANCELLED    |
++----+-------------+--------+--------------+
+5 rows in set (0.00 sec)
+mysql> SELECT
+    -> id,
+    -> employee_id,
+    -> amount,
+    -> order_status,
+    -> CASE
+    ->     WHEN order_status = 'OPEN'
+    ->         THEN 'Order is in open state'
+    ->     WHEN order_status = 'CLOSED'
+    ->         THEN 'Order is closed'
+    ->     ELSE 'Order is cancelled'
+    -> END AS 'full_order_status'
+    -> FROM orders;
++----+-------------+--------+--------------+------------------------+
+| id | employee_id | amount | order_status | full_order_status      |
++----+-------------+--------+--------------+------------------------+
+| 11 | e03         |  15.00 | OPEN         | Order is in open state |
+| 12 | e01         |  25.50 | OPEN         | Order is in open state |
+| 13 | e05         | 100.70 | CLOSED       | Order is closed        |
+| 14 | e02         |  22.18 | OPEN         | Order is in open state |
+| 15 | e04         |   9.50 | CANCELLED    | Order is cancelled     |
++----+-------------+--------+--------------+------------------------+
+5 rows in set (0.01 sec)
+
+4 Задание
+
+Null - это специально обозначение отсутствия каких-либо данных.
+0 - это целочисленное значение данных, который есть в типах данных "TINYINT", "SMALLINT", "MEDIUMINT", "INT (INTEGER)", "BIGINT".
