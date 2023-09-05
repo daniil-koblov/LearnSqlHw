@@ -1,0 +1,147 @@
+Подготовка базы.
+
+mysql> CREATE DATABASE learn_sql_hw_5;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> USE learn_sql_hw_5;
+Database changed
+
+mysql> CREATE TABLE communities LIKE learn_sql_hw_4.communities;
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> INSERT INTO communities SELECT * FROM learn_sql_hw_4.communities;
+Query OK, 10 rows affected (0.03 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE friend_requests LIKE learn_sql_hw_4.friend_requests;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO friend_requests SELECT * FROM learn_sql_hw_4.friend_requests;
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE likes LIKE learn_sql_hw_4.likes;
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO likes SELECT * FROM learn_sql_hw_4.likes;
+Query OK, 20 rows affected (0.02 sec)
+Records: 20  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE media LIKE learn_sql_hw_4.media;
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> INSERT INTO media SELECT * FROM learn_sql_hw_4.media;
+Query OK, 30 rows affected (0.01 sec)
+Records: 30  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE media_types LIKE learn_sql_hw_4.media_types;
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> INSERT INTO media_types SELECT * FROM learn_sql_hw_4.media_types;
+Query OK, 4 rows affected (0.02 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE messages LIKE learn_sql_hw_4.messages;
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO messages SELECT * FROM learn_sql_hw_4.messages;
+Query OK, 20 rows affected (0.02 sec)
+Records: 20  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE profiles LIKE learn_sql_hw_4.profiles;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO profiles SELECT * FROM learn_sql_hw_4.profiles;
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE users LIKE learn_sql_hw_4.users;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> INSERT INTO users SELECT * FROM learn_sql_hw_4.users;
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE users_communities LIKE learn_sql_hw_4.users_communities;
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> INSERT INTO users_communities SELECT * FROM learn_sql_hw_4.users_communities;
+Query OK, 40 rows affected (0.02 sec)
+Records: 40  Duplicates: 0  Warnings: 0
+
+ЗАДАНИЕ 1
+
+mysql> CREATE OR REPLACE VIEW view_user_under_20 AS
+    -> SELECT CONCAT(firstname, ' ', lastname, '; ', hometown, '; ', gender) AS 'Пользователи (младше 20 лет)'
+    ->     FROM users u
+    ->      JOIN profiles p ON u.id = p.user_id
+    ->      WHERE TIMESTAMPDIFF(YEAR, birthday, NOW()) < 20
+    ->      GROUP BY u.id;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> SELECT * FROM view_user_under_20;
++---------------------------------------------------+
+| Пользователи (младше 20 лет)                      |
++---------------------------------------------------+
+| Frederik Upton; North Nettieton; f                |
+| Austyn Braun; South Jeffereyshire; m              |
++---------------------------------------------------+
+2 rows in set (0.01 sec)
+
+ЗАДАНИЕ 2
+
+mysql> SELECT
+    -> DENSE_RANK() OVER (ORDER BY COUNT(from_user_id) DESC) AS 'Место в рейтинге',
+    -> COUNT(from_user_id) AS 'Количество отправленных сообщений',
+    -> CONCAT(firstname, ' ', lastname) AS 'Пользователи'
+    -> FROM users u
+    -> JOIN messages m ON u.id = m.from_user_id
+    -> GROUP BY u.id
+    -> ;
++--------------------------------+------------------------------------------------------------------+--------------------------+
+| Место в рейтинге               | Количество отправленных сообщений                                | Пользователи             |
++--------------------------------+------------------------------------------------------------------+--------------------------+
+|                              1 |                                                                7 | Jaida Kilback            |
+|                              2 |                                                                4 | Reuben Nienow            |
+|                              2 |                                                                4 | Norene West              |
+|                              3 |                                                                2 | Frederik Upton           |
+|                              4 |                                                                1 | Unique Windler           |
+|                              4 |                                                                1 | Mireya Orn               |
+|                              4 |                                                                1 | Jordyn Jerde             |
++--------------------------------+------------------------------------------------------------------+--------------------------+
+7 rows in set (0.01 sec)
+
+ЗАДАНИЕ 3
+
+mysql> SELECT
+    -> body,
+    ->     created_at,
+    ->     TIMEDIFF(created_at, Lag(created_at) OVER (ORDER BY created_at)) as dif
+    -> FROM messages AS m
+    -> ORDER BY created_at;
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+----------+
+| body                                                                                                                                                                                                 | created_at          | dif      |
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+----------+
+| Voluptatem ut quaerat quia. Pariatur esse amet ratione qui quia. In necessitatibus reprehenderit et. Nam accusantium aut qui quae nesciunt non.                                                      | 2023-08-26 13:20:43 | NULL     |
+| Sint dolores et debitis est ducimus. Aut et quia beatae minus. Ipsa rerum totam modi sunt sed. Voluptas atque eum et odio ea molestias ipsam architecto.                                             | 2023-08-26 13:22:43 | 00:02:00 |
+| Sed mollitia quo sequi nisi est tenetur at rerum. Sed quibusdam illo ea facilis nemo sequi. Et tempora repudiandae saepe quo.                                                                        | 2023-08-26 13:24:43 | 00:02:00 |
+| Quod dicta omnis placeat id et officiis et. Beatae enim aut aliquid neque occaecati odit. Facere eum distinctio assumenda omnis est delectus magnam.                                                 | 2023-08-26 13:30:43 | 00:06:00 |
+| Voluptas omnis enim quia porro debitis facilis eaque ut. Id inventore non corrupti doloremque consequuntur. Molestiae molestiae deleniti exercitationem sunt qui ea accusamus deserunt.              | 2023-08-26 13:31:43 | 00:01:00 |
+| Rerum labore culpa et laboriosam eum totam. Quidem pariatur sit alias. Atque doloribus ratione eum rem dolor vitae saepe.                                                                            | 2023-08-26 13:33:43 | 00:02:00 |
+| Perspiciatis temporibus doloribus debitis. Et inventore labore eos modi. Quo temporibus corporis minus. Accusamus aspernatur nihil nobis placeat molestiae et commodi eaque.                         | 2023-08-26 13:34:43 | 00:01:00 |
+| Suscipit dolore voluptas et sit vero et sint. Rem ut ratione voluptatum assumenda nesciunt ea. Quas qui qui atque ut. Similique et praesentium non voluptate iure. Eum aperiam officia quia dolorem. | 2023-08-26 13:40:43 | 00:06:00 |
+| Et quia libero aut vitae minus. Rerum a blanditiis debitis sit nam. Veniam quasi aut autem ratione dolorem. Sunt quo similique dolorem odit totam sint sed.                                          | 2023-08-26 13:41:43 | 00:01:00 |
+| Praesentium molestias quia aut odio. Est quis eius ut animi optio molestiae. Amet tempore sequi blanditiis in est.                                                                                   | 2023-08-26 13:44:43 | 00:03:00 |
+| Molestiae laudantium quibusdam porro est alias placeat assumenda. Ut consequatur rerum officiis exercitationem eveniet. Qui eum maxime sed in.                                                       | 2023-08-26 13:46:43 | 00:02:00 |
+| Quo asperiores et id veritatis placeat. Aperiam ut sit exercitationem iste vel nisi fugit quia. Suscipit labore error ducimus quaerat distinctio quae quasi.                                         | 2023-08-26 13:47:43 | 00:01:00 |
+| Earum sunt quia sed harum modi accusamus. Quia dolor laboriosam asperiores aliquam quia. Sint id quasi et cumque qui minima ut quo. Autem sed laudantium officiis sit sit.                           | 2023-08-26 13:52:43 | 00:05:00 |
+| Aut enim sint voluptas saepe. Ut tenetur quos rem earum sint inventore fugiat. Eaque recusandae similique earum laborum.                                                                             | 2023-08-26 13:54:43 | 00:02:00 |
+| Nisi rerum officiis officiis aut ad voluptates autem. Dolor nesciunt eum qui eos dignissimos culpa iste. Atque qui vitae quos odit inventore eum. Quam et voluptas quia amet.                        | 2023-08-26 13:54:43 | 00:00:00 |
+| Consequatur ut et repellat non voluptatem nihil veritatis. Vel deleniti omnis et consequuntur. Et doloribus reprehenderit sed earum quas velit labore.                                               | 2023-08-26 13:56:43 | 00:02:00 |
+| Iste deserunt in et et. Corrupti rerum a veritatis harum. Ratione consequatur est ut deserunt dolores.                                                                                               | 2023-08-26 13:56:43 | 00:00:00 |
+| Dicta non inventore autem incidunt accusamus amet distinctio. Aut laborum nam ab maxime. Maxime minima blanditiis et neque. Et laboriosam qui at deserunt magnam.                                    | 2023-08-26 14:00:43 | 00:04:00 |
+| Amet ad dolorum distinctio excepturi possimus quia. Adipisci veniam porro ipsum ipsum tempora est blanditiis. Magni ut quia eius qui.                                                                | 2023-08-26 14:01:43 | 00:01:00 |
+| Porro aperiam voluptate quo eos nobis. Qui blanditiis cum id eos. Est sit reprehenderit consequatur eum corporis. Molestias quia quo sit architecto aut.                                             | 2023-08-26 14:09:43 | 00:08:00 |
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+----------+
+20 rows in set (0.01 sec)
+
