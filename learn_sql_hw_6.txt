@@ -1,0 +1,264 @@
+Подготовка базы.
+
+mysql> CREATE DATABASE learn_sql_hw_6;
+Query OK, 1 row affected (0.07 sec)
+
+mysql> USE learn_sql_hw_6;
+Database changed
+
+mysql> CREATE TABLE communities LIKE learn_sql_hw_4.communities;
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> INSERT INTO communities SELECT * FROM learn_sql_hw_4.communities;
+Query OK, 10 rows affected (0.03 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE friend_requests LIKE learn_sql_hw_4.friend_requests;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO friend_requests SELECT * FROM learn_sql_hw_4.friend_requests;
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE likes LIKE learn_sql_hw_4.likes;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO likes SELECT * FROM learn_sql_hw_4.likes;
+Query OK, 20 rows affected (0.02 sec)
+Records: 20  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE media LIKE learn_sql_hw_4.media;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO media SELECT * FROM learn_sql_hw_4.media;
+Query OK, 30 rows affected (0.02 sec)
+Records: 30  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE media_types LIKE learn_sql_hw_4.media_types;
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> INSERT INTO media_types SELECT * FROM learn_sql_hw_4.media_types;
+Query OK, 4 rows affected (0.02 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE messages LIKE learn_sql_hw_4.messages;
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO messages SELECT * FROM learn_sql_hw_4.messages;
+Query OK, 20 rows affected (0.03 sec)
+Records: 20  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE profiles LIKE learn_sql_hw_4.profiles;
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> INSERT INTO profiles SELECT * FROM learn_sql_hw_4.profiles;
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> CREATE TABLE users LIKE learn_sql_hw_4.users;
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO users SELECT * FROM learn_sql_hw_4.users;
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE users_communities LIKE learn_sql_hw_4.users_communities;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO users_communities SELECT * FROM learn_sql_hw_4.users_communities;
+Query OK, 40 rows affected (0.02 sec)
+Records: 40  Duplicates: 0  Warnings: 0
+
+ЗАДАНИЕ 1
+
+mysql> CREATE TABLE users_old LIKE users;
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> DROP PROCEDURE IF EXISTS moving_users;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+DELIMITER //
+
+mysql> DROP PROCEDURE IF EXISTS moving_users;
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE moving_users(u_id int,
+    -> OUT  tran_result varchar(100))
+    ->
+    -> BEGIN
+    ->
+    -> DECLARE `_rollback` BIT DEFAULT 0;
+    -> DECLARE code varchar(100);
+    -> DECLARE error_string varchar(100);
+    -> DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    -> BEGIN
+    -> SET `_rollback` = 1;
+    -> GET stacked DIAGNOSTICS CONDITION 1
+    -> code = RETURNED_SQLSTATE, error_string = MESSAGE_TEXT;
+    -> END;
+    -> START TRANSACTION;
+    ->  INSERT INTO users_old (id, firstname, lastname, email)
+    -> SELECT id, firstname, lastname, email FROM users WHERE id = u_id;
+    -> DELETE FROM users
+    -> WHERE id=u_id;
+    -> IF `_rollback` THEN
+    -> SET tran_result = concat('Произошла ошибка: ', code, ' Текст ошибки: ', error_string);
+    -> ROLLBACK;
+    -> ELSE
+    -> SET tran_result = 'Операция прошла успешно.';
+    -> COMMIT;
+    -> END IF;
+    -> END//
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> DELIMITER ;
+
+mysql> CALL moving_users(1, @tran_result);
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> SELECT  @tran_result;
++-----------------------------------------------+
+| @tran_result                                  |
++-----------------------------------------------+
+| Операция прошла успешно.                      |
++-----------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT id, firstname, lastname, email FROM users_old;
++----+-----------+----------+--------------------+
+| id | firstname | lastname | email              |
++----+-----------+----------+--------------------+
+|  1 | Reuben    | Nienow   | arlo50@example.org |
++----+-----------+----------+--------------------+
+1 row in set (0.00 sec)
+
+ЗАДАНИЕ 2
+
+mysql> DROP FUNCTION IF EXISTS hello;
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE FUNCTION hello()
+    -> RETURNS TEXT NO SQL
+    -> BEGIN
+    -> DECLARE time_now INT;
+    -> SET time_now = HOUR(now());
+    -> CASE
+    -> WHEN time_now BETWEEN 0 AND 5 THEN
+    -> RETURN 'Доброй ночи!';
+    -> WHEN time_now BETWEEN 6 AND 11 THEN
+    -> RETURN 'Доброе утро!';
+    -> WHEN time_now BETWEEN 12 AND 17 THEN
+    -> RETURN 'Добрый день!';
+    -> WHEN time_now BETWEEN 18 AND 23 THEN
+    -> RETURN 'Добрый вечер!';
+    -> END CASE;
+    -> END//
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT hello();
++------------------------+
+| hello()                |
++------------------------+
+| Доброе утро!           |
++------------------------+
+1 row in set (0.01 sec)
+
+ЗАДАНИЕ 3
+
+mysql> DROP TABLE IF EXISTS logs;
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> CREATE TABLE logs (
+    -> created_at DATETIME DEFAULT now(),
+    -> table_name VARCHAR(20) NOT NULL,
+    -> pk_id INT UNSIGNED NOT NULL
+    -> )  ENGINE=ARCHIVE;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE
+    ->  TRIGGER  users_log
+    ->  AFTER INSERT ON users FOR EACH ROW
+    ->  INSERT INTO logs SET table_name = 'users' , pk_id = NEW.id;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE
+    -> TRIGGER  communities_log
+    ->  AFTER INSERT ON communities FOR EACH ROW
+    ->  INSERT INTO logs SET table_name = 'communities' , pk_id = NEW.id;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE
+    ->   TRIGGER  messages_log
+    -> AFTER INSERT ON messages FOR EACH ROW
+    -> INSERT INTO logs SET table_name = 'messages' , pk_id = NEW.id;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> INSERT INTO users (firstname, lastname) VALUES
+    -> ('Ivy', 'Mery')
+    -> ;
+Query OK, 1 row affected (0.02 sec)
+
+mysql> INSERT INTO messages (from_user_id, to_user_id, body) VALUES
+    -> (11, 2, 'Hello, brother!');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> INSERT INTO communities (name) VALUES
+    -> ('Music band "Skillet"');
+Query OK, 1 row affected (0.02 sec)
+
+mysql> SELECT * FROM users;
++----+-----------+----------+---------------------------------+
+| id | firstname | lastname | email                           |
++----+-----------+----------+---------------------------------+
+|  2 | Frederik  | Upton    | terrence.cartwright@example.org |
+|  3 | Unique    | Windler  | rupert55@example.org            |
+|  4 | Norene    | West     | rebekah29@example.net           |
+|  5 | Frederick | Effertz  | von.bridget@example.net         |
+|  6 | Victoria  | Medhurst | sstehr@example.net              |
+|  7 | Austyn    | Braun    | itzel.beahan@example.com        |
+|  8 | Jaida     | Kilback  | johnathan.wisozk@example.com    |
+|  9 | Mireya    | Orn      | missouri87@example.org          |
+| 10 | Jordyn    | Jerde    | edach@example.com               |
+| 11 | Ivy       | Mery     | NULL                            |
++----+-----------+----------+---------------------------------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT * FROM communities;
++----+----------------------+
+| id | name                 |
++----+----------------------+
+|  1 | atque                |
+|  2 | beatae               |
+|  3 | est                  |
+|  4 | eum                  |
+|  5 | hic                  |
+| 11 | Music band "Skillet" |
+|  6 | nemo                 |
+|  7 | quis                 |
+|  8 | rerum                |
+|  9 | tempora              |
+| 10 | voluptas             |
++----+----------------------+
+11 rows in set (0.00 sec)
+
+mysql> SELECT * FROM messages WHERE from_user_id = 11;
++----+--------------+------------+-----------------+---------------------+
+| id | from_user_id | to_user_id | body            | created_at          |
++----+--------------+------------+-----------------+---------------------+
+| 21 |           11 |          2 | Hello, brother! | 2023-09-11 13:30:11 |
++----+--------------+------------+-----------------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM logs;
++---------------------+-------------+-------+
+| created_at          | table_name  | pk_id |
++---------------------+-------------+-------+
+| 2023-09-11 13:25:19 | users       |    11 |
+| 2023-09-11 13:30:11 | messages    |    21 |
+| 2023-09-11 13:32:56 | communities |    11 |
++---------------------+-------------+-------+
+3 rows in set (0.01 sec)
